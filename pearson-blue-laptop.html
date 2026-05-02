@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pearson Correlation · Visual Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,700;1,400;1,700&family=Inconsolata:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #03070f;
+  --bg2:         #060d1a;
+  --panel:       #080f1e;
+  --panel2:      #0a1428;
+  --blue-bright: #4fc3f7;
+  --blue-mid:    #2979ff;
+  --blue-glow:   #1565c0;
+  --blue-faint:  rgba(79,195,247,0.08);
+  --cyan:        #00e5ff;
+  --indigo:      #7c83f5;
+  --violet:      #b48bff;
+  --ice:         #e0f7ff;
+  --ice-dim:     rgba(224,247,255,0.55);
+  --ice-muted:   rgba(224,247,255,0.28);
+  --ice-faint:   rgba(224,247,255,0.08);
+  --red:         #ff5370;
+  --border:      rgba(79,195,247,0.14);
+  --border2:     rgba(79,195,247,0.28);
+  --grid:        rgba(79,195,247,0.045);
+  --nav-h:       56px;
+  --sidebar-w:   420px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inconsolata', monospace;
+  background: var(--bg);
+  color: var(--ice);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    repeating-linear-gradient(0deg,  transparent, transparent 39px, var(--grid) 39px, var(--grid) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, var(--grid) 39px, var(--grid) 40px);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 8%,  rgba(21,101,192,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 85% 85%,  rgba(41,121,255,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 45% 38% at 55% 45%,  rgba(0,229,255,0.06) 0%, transparent 50%);
+}
+
+.math-bg {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0; overflow: hidden;
+}
+.math-bg canvas { position: absolute; inset: 0; width:100%; height:100%; }
+
+/* ── TOP NAV BAR ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  z-index: 100;
+  background: rgba(3,7,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 36px;
+  gap: 0;
+}
+
+.nav-logo {
+  font-family: 'STIX Two Text', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--blue-bright);
+  text-shadow: 0 0 20px rgba(79,195,247,0.5);
+  letter-spacing: -0.01em;
+  margin-right: 28px;
+  white-space: nowrap;
+}
+
+.nav-divider {
+  width: 1px; height: 22px;
+  background: var(--border);
+  margin-right: 28px;
+}
+
+.nav-tag {
+  font-size: 9px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ice-muted);
+}
+
+.nav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-badge {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  background: rgba(79,195,247,0.08);
+  border: 1px solid var(--border);
+  color: var(--blue-bright);
+  padding: 4px 11px;
+  transition: background 0.2s;
+}
+.nav-badge:hover { background: rgba(79,195,247,0.14); cursor: default; }
+
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MAIN LAYOUT: sidebar + content ── */
+.app-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+  padding-top: var(--nav-h);
+}
+
+/* LEFT SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: rgba(8,15,30,0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.sidebar-header {
+  padding: 36px 32px 28px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(41,121,255,0.06), transparent);
+}
+
+.title-eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.44em;
+  text-transform: uppercase;
+  color: var(--blue-bright);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.9;
+}
+
+.title-eyebrow::before {
+  content: '';
+  width: 28px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79,195,247,0.8));
+}
+
+h1 {
+  font-family: 'STIX Two Text', serif;
+  font-size: 2.15rem;
+  font-weight: 700;
+  color: var(--ice);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 50px rgba(79,195,247,0.18);
+}
+
+h1 .accent {
+  color: var(--blue-bright);
+  font-style: italic;
+  text-shadow: 0 0 30px rgba(79,195,247,0.5), 0 0 60px rgba(41,121,255,0.22);
+}
+
+.formula-hero {
+  margin: 22px 32px 0;
+  padding: 18px 24px;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  border-top: 2px solid var(--blue-bright);
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(79,195,247,0.05), 0 4px 32px rgba(0,0,0,0.5);
+}
+
+.formula-hero::before,
+.formula-hero::after {
+  content: ''; position: absolute;
+  width: 10px; height: 10px;
+  border-color: var(--blue-bright); border-style: solid; opacity: 0.4;
+}
+.formula-hero::before { bottom: -1px; left: -1px; border-width: 0 0 1.5px 1.5px; }
+.formula-hero::after  { bottom: -1px; right: -1px; border-width: 0 1.5px 1.5px 0; }
+
+.formula-label {
+  font-size: 8px; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--ice-muted); margin-bottom: 10px;
+}
+
+.formula-eq {
+  font-family: 'STIX Two Text', serif;
+  font-size: 1rem; color: var(--ice);
+  letter-spacing: 0.02em; line-height: 2.2;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+}
+
+.formula-eq .rho-sym {
+  font-size: 1.4rem; font-style: italic;
+  color: var(--blue-bright); margin-right: 5px;
+  text-shadow: 0 0 18px rgba(79,195,247,0.6);
+}
+
+.frac {
+  display: inline-flex; flex-direction: column;
+  align-items: center; vertical-align: middle;
+  margin: 0 5px; gap: 2px;
+}
+.frac .num { border-bottom: 1.5px solid rgba(224,247,255,0.4); padding: 0 5px 3px; font-size: 0.82rem; }
+.frac .den { padding: 3px 5px 0; font-size: 0.82rem; }
+
+.sqrt-wrap { display: inline-flex; align-items: center; }
+.sqrt-wrap::before { content: '√'; font-size: 0.95rem; color: var(--ice-dim); margin-right: 1px; }
+.sqrt-inner { border-top: 1.5px solid rgba(224,247,255,0.35); padding: 0 3px; font-size: 0.74rem; }
+
+/* Data entry in sidebar */
+.sidebar-data {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border);
+  flex: 1;
+}
+
+.section-label {
+  font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--ice-muted); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.section-mark {
+  font-family: 'STIX Two Text', serif; font-style: italic;
+  font-size: 14px; color: var(--blue-bright);
+  text-shadow: 0 0 10px rgba(79,195,247,0.6);
+}
+
+.data-scroll { max-height: 300px; overflow-y: auto; }
+.data-scroll::-webkit-scrollbar { width: 3px; }
+.data-scroll::-webkit-scrollbar-thumb { background: var(--border2); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  font-family: 'STIX Two Text', serif; font-size: 10.5px; font-style: italic;
+  color: var(--ice-muted); padding: 8px 10px; text-align: left;
+  border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.3);
+  position: sticky; top: 0;
+}
+tbody tr { border-bottom: 1px solid rgba(79,195,247,0.05); transition: background 0.15s; }
+tbody tr:hover { background: rgba(79,195,247,0.04); }
+tbody td { padding: 6px 10px; vertical-align: middle; }
+td.idx {
+  font-family: 'STIX Two Text', serif; font-size: 10px; font-style: italic;
+  color: var(--ice-muted); width: 28px;
+}
+td.inp { width: calc(50% - 36px); }
+td.act { width: 36px; text-align: right; }
+
+input[type="number"] {
+  width: 100%; background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(79,195,247,0.15);
+  color: var(--ice); font-family: 'Inconsolata', monospace;
+  font-size: 12.5px; padding: 6px 9px; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus {
+  border-color: rgba(79,195,247,0.55);
+  box-shadow: 0 0 0 2px rgba(79,195,247,0.1), 0 0 10px rgba(79,195,247,0.07);
+}
+input.bad { border-color: rgba(255,83,112,0.6); box-shadow: 0 0 0 2px rgba(255,83,112,0.1); }
+
+.btn-rm {
+  font-size: 12px; background: none; border: none;
+  color: var(--ice-muted); cursor: pointer; padding: 3px 6px;
+  transition: color 0.2s;
+}
+.btn-rm:hover { color: var(--red); }
+
+.err {
+  display: none; background: rgba(255,83,112,0.07);
+  border-left: 2px solid var(--red); color: var(--red);
+  padding: 9px 14px; font-size: 10.5px; margin: 8px 24px;
+}
+.err.on { display: block; }
+
+.sidebar-actions {
+  padding: 16px 24px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  border-top: 1px solid var(--border);
+  background: rgba(3,7,15,0.4);
+}
+
+button.btn {
+  font-family: 'Inconsolata', monospace; font-size: 10.5px;
+  letter-spacing: 0.12em; cursor: pointer; border: none;
+  padding: 10px 15px; transition: all 0.18s;
+  text-transform: uppercase; font-weight: 500;
+}
+
+.btn-add {
+  background: rgba(0,229,255,0.08); color: var(--cyan);
+  border: 1px solid rgba(0,229,255,0.25);
+}
+.btn-add:hover { background: rgba(0,229,255,0.15); box-shadow: 0 0 14px rgba(0,229,255,0.1); }
+
+.btn-calc {
+  flex: 1; background: linear-gradient(135deg, var(--blue-mid), #1a56db);
+  color: #fff; font-weight: 600; letter-spacing: 0.1em;
+  box-shadow: 0 2px 14px rgba(41,121,255,0.35), 0 0 0 1px rgba(79,195,247,0.2);
+}
+.btn-calc:hover {
+  background: linear-gradient(135deg, #3d8ef8, #2060e8);
+  box-shadow: 0 4px 22px rgba(41,121,255,0.5), 0 0 0 1px rgba(79,195,247,0.3);
+}
+
+.btn-ex {
+  background: rgba(124,131,245,0.1); color: var(--indigo);
+  border: 1px solid rgba(124,131,245,0.28);
+}
+.btn-ex:hover { background: rgba(124,131,245,0.18); }
+
+.btn-clear {
+  background: rgba(255,83,112,0.07); color: var(--red);
+  border: 1px solid rgba(255,83,112,0.22);
+}
+.btn-clear:hover { background: rgba(255,83,112,0.14); }
+
+button:active { transform: scale(0.97); }
+
+/* ── RIGHT CONTENT AREA ── */
+.content {
+  flex: 1;
+  padding: 36px 40px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.3;
+  pointer-events: none;
+  padding: 80px 0;
+}
+.empty-sym {
+  font-family: 'STIX Two Text', serif;
+  font-size: 5rem; font-style: italic;
+  color: var(--blue-bright);
+  margin-bottom: 14px;
+  line-height: 1;
+}
+.empty-txt {
+  font-size: 10.5px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--ice-muted);
+}
+
+/* ── Result card ── */
+.result-card {
+  background: var(--panel); border: 1px solid var(--border);
+  display: none; animation: floatIn 0.4s ease both;
+  position: relative;
+  box-shadow: 0 4px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(79,195,247,0.04);
+}
+.result-card::after {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(79,195,247,0.04); pointer-events: none;
+}
+.result-card.on { display: block; }
+
+.panel-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 20px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, rgba(41,121,255,0.07), transparent);
+}
+.panel-marker {
+  font-family: 'STIX Two Text', serif; font-size: 15px; font-style: italic;
+  color: var(--blue-bright); width: 22px; text-align: center;
+  text-shadow: 0 0 12px rgba(79,195,247,0.7);
+}
+.panel-marker.cyan   { color: var(--cyan);   text-shadow: 0 0 12px rgba(0,229,255,0.6); }
+.panel-marker.indigo { color: var(--indigo);  text-shadow: 0 0 12px rgba(124,131,245,0.6); }
+.panel-marker.violet { color: var(--violet);  text-shadow: 0 0 12px rgba(180,139,255,0.5); }
+.panel-title {
+  font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ice-muted);
+}
+
+/* Big result display — horizontal for laptop */
+.rho-display {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  border-bottom: 1px solid var(--border);
+}
+
+.rho-big {
+  padding: 32px 36px; border-right: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(41,121,255,0.12), rgba(0,0,0,0.2));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+.rho-label {
+  font-family: 'STIX Two Text', serif; font-size: 10px; font-style: italic;
+  color: var(--ice-muted); margin-bottom: 8px;
+}
+
+.rho-val {
+  font-family: 'STIX Two Text', serif; font-size: 4.4rem; font-weight: 700;
+  font-style: italic; line-height: 1; transition: color 0.4s;
+  filter: drop-shadow(0 0 22px currentColor);
+}
+
+.rho-interp {
+  padding: 28px 32px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.rho-strength {
+  font-family: 'STIX Two Text', serif; font-size: 1.35rem; font-weight: 700;
+  font-style: italic; margin-bottom: 10px; transition: color 0.3s;
+}
+.rho-desc { font-size: 12px; color: var(--ice-muted); line-height: 1.9; }
+
+/* Gauge */
+.gauge-wrap {
+  padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.g-label {
+  font-family: 'STIX Two Text', serif; font-size: 9.5px; font-style: italic;
+  color: var(--ice-muted); margin-bottom: 14px; letter-spacing: 0.1em;
+}
+.g-track {
+  height: 6px;
+  background: linear-gradient(90deg, var(--red), rgba(79,195,247,0.25) 50%, var(--cyan));
+  position: relative; margin-bottom: 11px;
+  box-shadow: 0 0 10px rgba(0,229,255,0.12);
+}
+.g-needle {
+  position: absolute; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2.5px solid var(--bg2);
+  transition: left 0.6s cubic-bezier(0.34,1.56,0.64,1), background 0.4s, box-shadow 0.4s;
+}
+.g-ticks {
+  display: flex; justify-content: space-between;
+  font-family: 'STIX Two Text', serif; font-size: 9.5px;
+  font-style: italic; color: var(--ice-muted);
+}
+
+/* Stats mini-grid — 6 columns for laptop */
+.stats-mini {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border-top: 1px solid var(--border);
+}
+.sm-cell {
+  padding: 14px 18px;
+  border-right: 1px solid var(--border);
+}
+.sm-cell:last-child { border-right: none; }
+.sm-lbl {
+  font-family: 'STIX Two Text', serif; font-size: 9.5px; font-style: italic;
+  color: var(--ice-muted); margin-bottom: 6px;
+}
+.sm-val {
+  font-family: 'Inconsolata', monospace; font-size: 16px;
+  color: var(--blue-bright); font-weight: 500;
+  text-shadow: 0 0 14px rgba(79,195,247,0.4);
+}
+
+/* Graph card */
+.graph-card {
+  background: var(--panel); border: 1px solid var(--border);
+  animation: floatIn 0.7s 0.1s ease both;
+  position: relative; box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+}
+.graph-card::after {
+  content: ''; position: absolute; inset: 5px;
+  border: 1px solid rgba(79,195,247,0.04); pointer-events: none; z-index: 0;
+}
+.scatter-wrap { padding: 16px; position: relative; z-index: 1; }
+canvas#scatter {
+  width: 100%; border: 1px solid var(--border);
+  background: var(--bg2); display: block;
+}
+.graph-legend {
+  display: flex; gap: 22px; padding: 11px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 10.5px; color: var(--ice-muted);
+  flex-wrap: wrap; align-items: center; position: relative; z-index: 1;
+}
+.leg-item { display: flex; align-items: center; gap: 7px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+.leg-line { width: 22px; height: 2px; }
+#regEq {
+  margin-left: auto;
+  font-family: 'STIX Two Text', serif; font-style: italic;
+  font-size: 13px; color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,229,255,0.4);
+}
+
+/* Derivation card */
+.derivation-card {
+  background: var(--panel); border: 1px solid var(--border);
+  display: none; animation: floatIn 0.4s ease both;
+  position: relative; box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+}
+.derivation-card.on { display: block; }
+
+.deriv-body {
+  padding: 20px 22px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.deriv-step {
+  background: rgba(0,0,0,0.28);
+  border: 1px solid rgba(79,195,247,0.09);
+  border-left: 2px solid rgba(79,195,247,0.45);
+  padding: 13px 15px; transition: border-left-color 0.2s;
+}
+.deriv-step:hover { border-left-color: var(--blue-bright); }
+
+.deriv-step-label {
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.28em; color: var(--ice-muted); margin-bottom: 7px;
+}
+.deriv-step-eq {
+  font-family: 'STIX Two Text', serif; font-size: 12.5px;
+  font-style: italic; color: var(--ice); line-height: 1.65;
+}
+.deriv-step-val {
+  font-family: 'Inconsolata', monospace; font-size: 11.5px;
+  color: var(--blue-bright); margin-top: 5px;
+  text-shadow: 0 0 10px rgba(79,195,247,0.3);
+}
+
+/* Animations */
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.row-anim { animation: rowIn 0.2s ease both; }
+
+/* Tooltip */
+.tooltip {
+  position: fixed; background: var(--panel2);
+  border: 1px solid var(--border2); color: var(--ice);
+  font-family: 'STIX Two Text', serif; font-style: italic;
+  font-size: 12px; padding: 6px 12px;
+  pointer-events: none; display: none; z-index: 999;
+  white-space: nowrap;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 16px rgba(79,195,247,0.12);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  :root { --sidebar-w: 360px; }
+  .deriv-body { grid-template-columns: repeat(2,1fr); }
+  .stats-mini { grid-template-columns: repeat(3,1fr); }
+  .sm-cell:nth-child(3) { border-right: none; }
+  .sm-cell:nth-child(4),.sm-cell:nth-child(5),.sm-cell:nth-child(6) { border-top: 1px solid var(--border); }
+}
+@media (max-width: 860px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; position: relative; height: auto; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
+  .content { padding: 24px 20px 48px; }
+  .deriv-body { grid-template-columns: 1fr; }
+  .rho-display { grid-template-columns: 160px 1fr; }
+  .stats-mini { grid-template-columns: repeat(3,1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="math-bg"><canvas id="bgCanvas"></canvas></div>
+<div class="tooltip" id="tooltip"></div>
+
+<!-- TOP NAV -->
+<nav>
+  <div class="nav-logo">ρ Pearson</div>
+  <div class="nav-divider"></div>
+  <div class="nav-tag">Correlation · Visual Calculator</div>
+  <div class="nav-right">
+    <div class="nav-badge">Karl Pearson · 1895</div>
+    <div class="nav-dot"></div>
+  </div>
+</nav>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR: header + data entry -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="title-eyebrow">Statistical Analysis · Theorem</div>
+      <h1>Pearson <span class="accent">Correlation</span><br>Coefficient</h1>
+    </div>
+
+    <div class="formula-hero">
+      <div class="formula-label">Definition · Karl Pearson, 1895</div>
+      <div class="formula-eq">
+        <span class="rho-sym">ρ</span>
+        <span style="margin:0 7px;color:var(--ice-dim)">=</span>
+        <span class="frac">
+          <span class="num">∑(xᵢ − x̄)(yᵢ − ȳ)</span>
+          <span class="den">
+            <span class="sqrt-wrap"><span class="sqrt-inner">∑(xᵢ − x̄)²</span></span>
+            &thinsp;·&thinsp;
+            <span class="sqrt-wrap"><span class="sqrt-inner">∑(yᵢ − ȳ)²</span></span>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="sidebar-data">
+      <div class="section-label">
+        <span class="section-mark">∑</span> Observations · (xᵢ, yᵢ)
+      </div>
+      <div class="data-scroll">
+        <table>
+          <thead><tr>
+            <th><em>i</em></th>
+            <th><em>x</em><sub style="font-size:8px">i</sub></th>
+            <th><em>y</em><sub style="font-size:8px">i</sub></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="dataRows"></tbody>
+        </table>
+      </div>
+      <div class="err" id="errMsg"></div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn btn-add" onclick="addRow()">＋ Row</button>
+      <button class="btn btn-calc" onclick="calculate()">Compute ρ</button>
+      <button class="btn btn-ex" onclick="loadExample()">Example</button>
+      <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="content">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-sym">ρ</div>
+      <div class="empty-txt">Enter data & click Compute ρ</div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-card" id="resultCard">
+      <div class="panel-head">
+        <div class="panel-marker cyan">ρ</div>
+        <span class="panel-title">Result · Pearson r</span>
+      </div>
+      <div class="rho-display">
+        <div class="rho-big">
+          <div class="rho-label">ρ (r)</div>
+          <div class="rho-val" id="rhoVal">—</div>
+        </div>
+        <div class="rho-interp">
+          <div class="rho-strength" id="rhoStrength"></div>
+          <div class="rho-desc" id="rhoDesc"></div>
+        </div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="g-label">correlation spectrum · −1 ≤ ρ ≤ 1</div>
+        <div class="g-track">
+          <div class="g-needle" id="needle"></div>
+        </div>
+        <div class="g-ticks">
+          <span>−1 perfect neg.</span>
+          <span>0 none</span>
+          <span>+1 perfect pos.</span>
+        </div>
+      </div>
+      <div class="stats-mini">
+        <div class="sm-cell"><div class="sm-lbl">n (sample size)</div><div class="sm-val" id="sN">—</div></div>
+        <div class="sm-cell"><div class="sm-lbl">x̄ (mean x)</div><div class="sm-val" id="sMx">—</div></div>
+        <div class="sm-cell"><div class="sm-lbl">ȳ (mean y)</div><div class="sm-val" id="sMy">—</div></div>
+        <div class="sm-cell"><div class="sm-lbl">σₓ (std dev x)</div><div class="sm-val" id="sSx">—</div></div>
+        <div class="sm-cell"><div class="sm-lbl">σᵧ (std dev y)</div><div class="sm-val" id="sSy">—</div></div>
+        <div class="sm-cell"><div class="sm-lbl">cov(x,y)</div><div class="sm-val" id="sCov">—</div></div>
+      </div>
+    </div>
+
+    <!-- Scatter plot -->
+    <div class="graph-card" id="graphCard">
+      <div class="panel-head">
+        <div class="panel-marker violet">f</div>
+        <span class="panel-title">Scatter Plot &amp; Regression Line</span>
+      </div>
+      <div class="scatter-wrap">
+        <canvas id="scatter" height="380"></canvas>
+      </div>
+      <div class="graph-legend">
+        <div class="leg-item">
+          <div class="leg-dot" style="background:var(--blue-bright);box-shadow:0 0 6px var(--blue-bright)"></div>
+          <span>Data Points (xᵢ, yᵢ)</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-line" style="background:var(--cyan);box-shadow:0 0 4px var(--cyan)"></div>
+          <span>Regression line ŷ = α + βx</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-line" style="border-top:1px dashed rgba(79,195,247,0.4);height:0;width:22px"></div>
+          <span>Mean lines (x̄, ȳ)</span>
+        </div>
+        <span id="regEq"></span>
+      </div>
+    </div>
+
+    <!-- Step-by-step derivation -->
+    <div class="derivation-card" id="derivCard">
+      <div class="panel-head">
+        <div class="panel-marker indigo">∂</div>
+        <span class="panel-title">Step-by-Step Derivation</span>
+      </div>
+      <div class="deriv-body" id="derivBody"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ─── Animated math background ─── */
+(function() {
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const symbols = [
+    '∑','∫','∂','√','π','ρ','σ','μ','∈','≠','≈','∞','∇','Δ','θ','φ','α','β','λ',
+    '±','≤','≥','×','÷','Σ','Φ','Ψ','Ω','ℝ','ℕ','∀','∃','⊂','∩','∪','⊕',
+    'cov','σ²','x̄','ȳ','n−1','r²','ℂ','∮','⟨','⟩','∝','≡'
+  ];
+  const colors = [
+    'rgba(79,195,247,','rgba(41,121,255,','rgba(0,229,255,',
+    'rgba(124,131,245,','rgba(180,139,255,','rgba(100,180,255,',
+  ];
+  const particles = [];
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init=false) {
+      this.x = Math.random() * W;
+      this.y = init ? Math.random() * H : H + 40;
+      this.sym = symbols[Math.floor(Math.random()*symbols.length)];
+      this.size = 10 + Math.random()*22;
+      this.speed = 0.1 + Math.random()*0.22;
+      this.opacity = 0.04 + Math.random()*0.09;
+      this.drift = (Math.random()-0.5)*0.22;
+      this.rot = (Math.random()-0.5)*0.003;
+      this.angle = Math.random() * Math.PI * 2;
+      this.colorBase = colors[Math.floor(Math.random()*colors.length)];
+    }
+    update() { this.y -= this.speed; this.x += this.drift; this.angle += this.rot; if (this.y < -50) this.reset(); }
+    draw() {
+      ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+      ctx.font = `${this.size}px 'STIX Two Text', serif`;
+      ctx.fillStyle = `${this.colorBase}${this.opacity})`;
+      ctx.fillText(this.sym, 0, 0); ctx.restore();
+    }
+  }
+  resize(); window.addEventListener('resize', resize);
+  for (let i=0; i<80; i++) particles.push(new Particle());
+  function loop() { ctx.clearRect(0,0,W,H); particles.forEach(p=>{ p.update(); p.draw(); }); requestAnimationFrame(loop); }
+  loop();
+})();
+
+/* ─── Data entry ─── */
+let rid = 0;
+
+function addRow(x='', y='', anim=true) {
+  rid++;
+  const tbody = document.getElementById('dataRows');
+  const n = tbody.rows.length + 1;
+  const tr = document.createElement('tr');
+  if (anim) tr.classList.add('row-anim');
+  tr.id = 'r'+rid;
+  tr.innerHTML = `
+    <td class="idx"><em>${n}</em></td>
+    <td class="inp"><input type="number" placeholder="x" value="${x}" step="any" onkeydown="kNav(event,this)"></td>
+    <td class="inp"><input type="number" placeholder="y" value="${y}" step="any" onkeydown="kNav(event,this)"></td>
+    <td class="act"><button class="btn-rm" onclick="rmRow('r${rid}')" title="Remove">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  renum();
+}
+
+function rmRow(id) {
+  const r = document.getElementById(id);
+  if (!r) return;
+  r.style.transition = 'opacity 0.2s'; r.style.opacity = '0';
+  setTimeout(()=>{ r.remove(); renum(); }, 200);
+}
+
+function renum() {
+  document.querySelectorAll('#dataRows tr').forEach((r,i)=>{
+    const td = r.querySelector('.idx');
+    if(td) td.innerHTML = `<em>${i+1}</em>`;
+  });
+}
+
+function kNav(e, inp) {
+  if (e.key==='Enter') {
+    e.preventDefault();
+    const all = [...document.querySelectorAll('#dataRows input')];
+    const idx = all.indexOf(inp);
+    if (idx < all.length-1) all[idx+1].focus();
+    else calculate();
+  }
+}
+
+function clearAll() {
+  document.getElementById('dataRows').innerHTML = '';
+  rid = 0;
+  document.getElementById('resultCard').className = 'result-card';
+  document.getElementById('errMsg').className = 'err';
+  document.getElementById('derivCard').className = 'derivation-card';
+  document.getElementById('emptyState').style.display = 'flex';
+  addRow('','',false); addRow('','',false); addRow('','',false);
+}
+
+function loadExample() {
+  document.getElementById('dataRows').innerHTML = '';
+  rid = 0;
+  const data = [[2,4],[4,7],[5,9],[6,10],[8,14],[9,15],[10,17],[12,19],[14,22],[15,24]];
+  data.forEach(([x,y])=>addRow(x,y,false));
+  calculate();
+}
+
+/* ─── Math ─── */
+const r4 = v => Math.round(v*10000)/10000;
+const mean = a => a.reduce((s,v)=>s+v,0)/a.length;
+const stddev = (a,m) => Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length);
+
+function interpret(rho) {
+  const a = Math.abs(rho);
+  const d = rho>=0 ? 'Positive' : 'Negative';
+  const col = a<0.1 ? 'rgba(224,247,255,0.38)' : rho>0 ? '#4fc3f7' : '#ff7eb3';
+  if (a>=0.9) return { s:`${d} — Perfect`,  t:`Near-perfect linear relationship. x almost completely determines y.`, col };
+  if (a>=0.7) return { s:`${d} — Strong`,   t:`Strong correlation. Variables move together consistently.`, col };
+  if (a>=0.5) return { s:`${d} — Moderate`, t:`Moderate correlation. A clear linear trend exists.`, col };
+  if (a>=0.3) return { s:`${d} — Weak`,     t:`Weak relationship. Some linear pattern exists but with scatter.`, col };
+  return { s:'No Correlation', t:`Little to no linear relationship detected (ρ ≈ ${r4(rho)}).`, col };
+}
+
+/* ─── Calculate ─── */
+function calculate() {
+  const errEl = document.getElementById('errMsg');
+  errEl.className = 'err';
+  document.querySelectorAll('#dataRows input').forEach(i=>i.classList.remove('bad'));
+
+  const rows = [...document.querySelectorAll('#dataRows tr')];
+  const xs=[], ys=[];
+  let hasErr = false;
+
+  rows.forEach(row=>{
+    const [ix, iy] = row.querySelectorAll('input');
+    const xv = ix.value.trim(), yv = iy.value.trim();
+    if (!xv && !yv) return;
+    const xn = parseFloat(xv), yn = parseFloat(yv);
+    if (isNaN(xn)) { ix.classList.add('bad'); hasErr=true; }
+    if (isNaN(yn)) { iy.classList.add('bad'); hasErr=true; }
+    if (!isNaN(xn) && !isNaN(yn)) { xs.push(xn); ys.push(yn); }
+  });
+
+  if (xs.length < 2) {
+    errEl.textContent = hasErr ? 'Fix invalid entries.' : 'Enter at least 2 complete (x, y) pairs.';
+    errEl.className = 'err on'; return;
+  }
+
+  const n=xs.length, mx=mean(xs), my=mean(ys);
+  const dx=xs.map(v=>v-mx), dy=ys.map(v=>v-my);
+  const num=dx.reduce((s,v,i)=>s+v*dy[i],0);
+  const dX=Math.sqrt(dx.reduce((s,v)=>s+v*v,0));
+  const dY=Math.sqrt(dy.reduce((s,v)=>s+v*v,0));
+
+  if (dX===0||dY===0) { errEl.textContent='One variable has zero variance.'; errEl.className='err on'; return; }
+
+  const rho=num/(dX*dY), cov=num/n;
+  const sdx=stddev(xs,mx), sdy=stddev(ys,my);
+  const interp=interpret(rho);
+  const beta = num/dx.reduce((s,v)=>s+v*v,0);
+  const alpha = my - beta*mx;
+  const r2 = rho*rho;
+
+  document.getElementById('rhoVal').textContent = r4(rho);
+  document.getElementById('rhoVal').style.color = interp.col;
+  document.getElementById('rhoStrength').textContent = interp.s;
+  document.getElementById('rhoStrength').style.color = interp.col;
+  document.getElementById('rhoDesc').textContent = interp.t;
+
+  const pct=((rho+1)/2)*100;
+  const needle = document.getElementById('needle');
+  needle.style.left = pct+'%';
+  needle.style.background = interp.col;
+  needle.style.boxShadow = `0 0 14px ${interp.col}`;
+
+  document.getElementById('sN').textContent=n;
+  document.getElementById('sMx').textContent=r4(mx);
+  document.getElementById('sMy').textContent=r4(my);
+  document.getElementById('sSx').textContent=r4(sdx);
+  document.getElementById('sSy').textContent=r4(sdy);
+  document.getElementById('sCov').textContent=r4(cov);
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultCard').className='result-card on';
+
+  const sumXY=r4(num), ssX=r4(dx.reduce((s,v)=>s+v*v,0)), ssY=r4(dy.reduce((s,v)=>s+v*v,0));
+  document.getElementById('derivBody').innerHTML = `
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 1 · Compute means</div>
+      <div class="deriv-step-eq">x̄ = (1/n)∑xᵢ,  ȳ = (1/n)∑yᵢ</div>
+      <div class="deriv-step-val">x̄ = ${r4(mx)},  ȳ = ${r4(my)}</div>
+    </div>
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 2 · Cross-product sum</div>
+      <div class="deriv-step-eq">∑(xᵢ−x̄)(yᵢ−ȳ)</div>
+      <div class="deriv-step-val">= ${sumXY}</div>
+    </div>
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 3 · Sum of squares</div>
+      <div class="deriv-step-eq">SS_x = ∑(xᵢ−x̄)²,  SS_y = ∑(yᵢ−ȳ)²</div>
+      <div class="deriv-step-val">SS_x = ${ssX},  SS_y = ${ssY}</div>
+    </div>
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 4 · Pearson r</div>
+      <div class="deriv-step-eq">ρ = ∑(xᵢ−x̄)(yᵢ−ȳ) / √(SS_x · SS_y)</div>
+      <div class="deriv-step-val">= ${sumXY} / ${r4(dX*dY)} = <strong style="color:#4fc3f7;text-shadow:0 0 10px rgba(79,195,247,0.6)">${r4(rho)}</strong></div>
+    </div>
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 5 · Coefficient of determination</div>
+      <div class="deriv-step-eq">R² = ρ²</div>
+      <div class="deriv-step-val">= ${r4(r2)} (${Math.round(r2*100)}% variance explained)</div>
+    </div>
+    <div class="deriv-step">
+      <div class="deriv-step-label">Step 6 · Regression coefficients</div>
+      <div class="deriv-step-eq">β = SS_xy/SS_x,  α = ȳ − βx̄</div>
+      <div class="deriv-step-val">β = ${r4(beta)},  α = ${r4(alpha)}</div>
+    </div>
+  `;
+  document.getElementById('derivCard').className='derivation-card on';
+
+  drawScatter(xs, ys, mx, my, alpha, beta, interp.col);
+  document.getElementById('regEq').textContent = `ŷ = ${r4(alpha)} + ${r4(beta)}x  (R² = ${r4(r2)})`;
+}
+
+/* ─── Scatter plot ─── */
+function drawScatter(xs, ys, mx, my, a, b, lineCol) {
+  const canvas = document.getElementById('scatter');
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth, H = 380;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top:32, right:32, bottom:52, left:66 };
+  const gW = W-pad.left-pad.right, gH = H-pad.top-pad.bottom;
+
+  const xMin=Math.min(...xs), xMax=Math.max(...xs);
+  const yMin=Math.min(...ys), yMax=Math.max(...ys);
+  const xRange=xMax-xMin||1, yRange=yMax-yMin||1;
+  const xPad=xRange*0.14, yPad=yRange*0.14;
+  const xL=xMin-xPad, xR=xMax+xPad, yB=yMin-yPad, yT=yMax+yPad;
+
+  const toX = v => pad.left + (v-xL)/(xR-xL)*gW;
+  const toY = v => pad.top + (1-(v-yB)/(yT-yB))*gH;
+
+  ctx.fillStyle='#060d1a'; ctx.fillRect(0,0,W,H);
+
+  const bgGlow = ctx.createRadialGradient(W*0.5, H*0.4, 0, W*0.5, H*0.4, W*0.7);
+  bgGlow.addColorStop(0, 'rgba(41,121,255,0.07)');
+  bgGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = bgGlow; ctx.fillRect(0,0,W,H);
+
+  // Minor grid
+  ctx.strokeStyle='rgba(79,195,247,0.05)'; ctx.lineWidth=0.5;
+  for(let i=0;i<=12;i++){ const x=pad.left+i/12*gW; ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+gH); ctx.stroke(); }
+  for(let i=0;i<=8;i++){ const y=pad.top+i/8*gH; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+gW,y); ctx.stroke(); }
+  // Major grid
+  ctx.strokeStyle='rgba(79,195,247,0.1)'; ctx.lineWidth=1;
+  for(let i=0;i<=6;i++){ const x=pad.left+i/6*gW; ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+gH); ctx.stroke(); }
+  for(let i=0;i<=4;i++){ const y=pad.top+i/4*gH; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+gW,y); ctx.stroke(); }
+
+  // Mean crosshairs
+  ctx.setLineDash([5,5]); ctx.strokeStyle='rgba(79,195,247,0.3)'; ctx.lineWidth=1;
+  const mxP=toX(mx), myP=toY(my);
+  ctx.beginPath(); ctx.moveTo(mxP,pad.top); ctx.lineTo(mxP,pad.top+gH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.left,myP); ctx.lineTo(pad.left+gW,myP); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle='rgba(79,195,247,0.55)';
+  ctx.font=`italic 9px 'STIX Two Text', serif`;
+  ctx.textAlign='left';  ctx.fillText('x̄', mxP+3, pad.top+12);
+  ctx.textAlign='right'; ctx.fillText('ȳ', pad.left-4, myP-4);
+
+  // Regression line
+  const rx1=xL, rx2=xR, ry1=a+b*rx1, ry2=a+b*rx2;
+  ctx.strokeStyle='rgba(0,229,255,0.18)'; ctx.lineWidth=7;
+  ctx.beginPath(); ctx.moveTo(toX(rx1),toY(ry1)); ctx.lineTo(toX(rx2),toY(ry2)); ctx.stroke();
+  ctx.strokeStyle='rgba(0,229,255,0.9)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(toX(rx1),toY(ry1)); ctx.lineTo(toX(rx2),toY(ry2)); ctx.stroke();
+
+  // Data points
+  xs.forEach((xv,i) => {
+    const px=toX(xv), py=toY(ys[i]);
+    const g = ctx.createRadialGradient(px,py,0,px,py,20);
+    g.addColorStop(0,'rgba(79,195,247,0.22)'); g.addColorStop(1,'rgba(79,195,247,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(px,py,20,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(79,195,247,0.35)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(px,py,8,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='#4fc3f7';
+    ctx.strokeStyle='rgba(6,13,26,0.9)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(px,py,5.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  });
+
+  // Axes
+  ctx.strokeStyle='rgba(224,247,255,0.4)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(pad.left,pad.top); ctx.lineTo(pad.left,pad.top+gH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pad.left,pad.top+gH); ctx.lineTo(pad.left+gW,pad.top+gH); ctx.stroke();
+
+  const aw=5, ah=8;
+  ctx.fillStyle='rgba(224,247,255,0.4)';
+  ctx.beginPath(); ctx.moveTo(pad.left,pad.top); ctx.lineTo(pad.left-aw,pad.top+ah); ctx.lineTo(pad.left+aw,pad.top+ah); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(pad.left+gW,pad.top+gH); ctx.lineTo(pad.left+gW-ah,pad.top+gH-aw); ctx.lineTo(pad.left+gW-ah,pad.top+gH+aw); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle='rgba(79,195,247,0.5)';
+  ctx.font=`10.5px 'Inconsolata', monospace`; ctx.textAlign='center';
+  for(let i=0;i<=6;i++){
+    const v=xL+i/6*(xR-xL);
+    ctx.fillText(Math.round(v*10)/10, pad.left+i/6*gW, pad.top+gH+18);
+  }
+  ctx.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const v=yB+(1-i/4)*(yT-yB);
+    ctx.fillText(Math.round(v*10)/10, pad.left-8, pad.top+i/4*gH+4);
+  }
+
+  ctx.fillStyle='rgba(224,247,255,0.5)';
+  ctx.font=`italic 13px 'STIX Two Text', serif`;
+  ctx.textAlign='center';
+  ctx.fillText('x', pad.left+gW+16, pad.top+gH+4);
+  ctx.save(); ctx.translate(15, pad.top+gH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('y', 0, 0); ctx.restore();
+
+  canvas.onmousemove = function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx2=(e.clientX-rect.left), my2=(e.clientY-rect.top);
+    let hit=false;
+    xs.forEach((xv,i)=>{
+      const px=toX(xv), py=toY(ys[i]);
+      if(Math.hypot(mx2-px,my2-py)<14){
+        const tt=document.getElementById('tooltip');
+        tt.style.display='block';
+        tt.style.left=(e.clientX+16)+'px';
+        tt.style.top=(e.clientY-36)+'px';
+        tt.textContent=`(${xv}, ${ys[i]})`;
+        hit=true;
+      }
+    });
+    if(!hit) document.getElementById('tooltip').style.display='none';
+  };
+  canvas.onmouseleave=()=>{ document.getElementById('tooltip').style.display='none'; };
+}
+
+// Init
+addRow('','',false); addRow('','',false); addRow('','',false);
+</script>
+</body>
+</html>
